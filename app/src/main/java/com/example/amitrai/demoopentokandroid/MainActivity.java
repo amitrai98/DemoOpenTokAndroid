@@ -1,54 +1,76 @@
 package com.example.amitrai.demoopentokandroid;
 
-import android.Manifest;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
+import com.example.amitrai.demoopentokandroid.bean.InitializerBean;
 import com.example.amitrai.demoopentokandroid.bean.SignalMessage;
+import com.example.amitrai.demoopentokandroid.listeners.OpenTokListener;
+import com.example.amitrai.demoopentokandroid.opentok_custom.ConnectionManager;
 import com.example.amitrai.demoopentokandroid.utility.Appconstants;
-import com.opentok.android.Connection;
-import com.opentok.android.OpentokError;
-import com.opentok.android.PublisherKit;
-import com.opentok.android.Session;
-import com.opentok.android.Stream;
 
-import pub.devrel.easypermissions.AfterPermissionGranted;
 import pub.devrel.easypermissions.EasyPermissions;
 
-import static android.R.attr.data;
-import static com.example.amitrai.demoopentokandroid.utility.Appconstants.API_KEY;
-import static com.example.amitrai.demoopentokandroid.utility.Appconstants.SESSION_ID;
-import static com.example.amitrai.demoopentokandroid.utility.Appconstants.TOKEN;
+public class MainActivity extends AppCompatActivity implements OpenTokListener {
 
-public class MainActivity extends AppCompatActivity implements Session.SessionListener,
-        PublisherKit.PublisherListener, Session.SignalListener {
 
-    private static final int RC_VIDEO_APP_PERM = 101;
+    private final String TAG = getClass().getSimpleName();
 
-    private final String LOG_TAG = getClass().getSimpleName();
-    private Session mSession = null;
+    private Button btn_send = null;
+    private EditText edt_message = null;
+    private InitializerBean bean = null;
+    private ConnectionManager connectionManager = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        initOpenTok();
-        requestPermissions();
+        init();
+        initializeOpenTok();
+    }
+
+    /**
+     * initializes opentok
+     */
+    private void initializeOpenTok(){
+        bean = new InitializerBean();
+        bean.setApiKey(Appconstants.API_KEY);
+        bean.setSessionId(Appconstants.SESSION_ID);
+        bean.setToken(Appconstants.TOKEN);
+
+        connectionManager = new ConnectionManager(this, bean, this);
+        connectionManager.initializeSession();
     }
 
 
     /**
-     * initialize opentok
+     * initialize view elements
      */
-    private void initOpenTok() {
-        mSession = new Session.Builder(this, API_KEY, SESSION_ID).build();
-        mSession.setSessionListener(this);
-        mSession.connect(TOKEN);
-    }
+    private void init(){
+        btn_send = (Button) findViewById(R.id.btn_send);
+        edt_message = (EditText) findViewById(R.id.edt_message);
 
+        btn_send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String message = edt_message.getText().toString();
+                if (message != null && !message.isEmpty()) {
+                    SignalMessage signalMessage = new SignalMessage(Appconstants.MESSAGE_TYPE_CHAT, message);
+                    if (connectionManager.isConnected)
+                        connectionManager.sendMessage(signalMessage);
+                }else
+                    Toast.makeText(MainActivity.this, "message can not be empty", Toast.LENGTH_LONG).show();
+
+            }
+        });
+    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -58,97 +80,18 @@ public class MainActivity extends AppCompatActivity implements Session.SessionLi
     }
 
 
-    @AfterPermissionGranted(RC_VIDEO_APP_PERM)
-    private void requestPermissions() {
-        String[] perms = { Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO };
-        if (EasyPermissions.hasPermissions(this, perms)) {
-            // initialize view objects from your layout
-//            mPublisherViewContainer = (FrameLayout) findViewById(R.id.publisher_container);
-//            mSubscriberViewContainer = (FrameLayout) findViewById(R.id.subscriber_container);
-
-            // initialize and connect to the session
-//            mSession = new Session.Builder(this, API_KEY, SESSION_ID).build();
-//            mSession.setSessionListener(this);
-//            mSession.connect(TOKEN);
-
-        } else {
-            EasyPermissions.requestPermissions(this, "This app needs access to your camera and mic to make video calls", RC_VIDEO_APP_PERM, perms);
-        }
+    @Override
+    public void onError(String error_message) {
+        Log.e(TAG, "error "+ error_message);
     }
 
     @Override
-    public void onConnected(Session session) {
-        Log.e(LOG_TAG, "Session Connected");
-        mSession.setSignalListener(this);
-
-        sendMessage("this is a text message");
+    public void onSuccess(String message) {
+        Log.e(TAG, "success message "+ message);
     }
 
     @Override
-    public void onDisconnected(Session session) {
-        Log.e(LOG_TAG, "Session Disconnected");
-    }
-
-    @Override
-    public void onStreamReceived(Session session, Stream stream) {
-        Log.e(LOG_TAG, "Stream Received");
-    }
-
-    @Override
-    public void onStreamDropped(Session session, Stream stream) {
-        Log.e(LOG_TAG, "Stream Dropped");
-    }
-
-    @Override
-    public void onError(Session session, OpentokError opentokError) {
-        Log.e(LOG_TAG, "Session error: " + opentokError.getMessage());
-    }
-
-    @Override
-    public void onStreamCreated(PublisherKit publisherKit, Stream stream) {
-        Log.e(LOG_TAG, "stream created: ");
-    }
-
-    @Override
-    public void onStreamDestroyed(PublisherKit publisherKit, Stream stream) {
-        Log.e(LOG_TAG, "stream destroyed" );
-    }
-
-    @Override
-    public void onError(PublisherKit publisherKit, OpentokError opentokError) {
-        Log.e(LOG_TAG, "error in stream " );
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        try{
-            if (mSession != null)
-                mSession.disconnect();
-        }catch (Exception exp){
-            exp.printStackTrace();
-        }
-
-
-    }
-
-
-    private void sendMessage(String message) {
-        SignalMessage signal = new SignalMessage(message);
-        mSession.sendSignal(Appconstants.SIGNAL_TYPE, signal.getMessage());
-
-    }
-
-    @Override
-    public void onSignalReceived(Session session, String message_type, String message, Connection connection) {
-        boolean remote = !connection.equals(mSession.getConnection());
-        if (message_type != null && message_type.equalsIgnoreCase(Appconstants.SIGNAL_TYPE)) {
-//            showMessage(data, remote);
-            Log.e(LOG_TAG, "data is "+data+" message is "+remote+" message type "+message_type+
-                    " message  "+message);
-
-
-        }
+    public void onMessageReceived(String message_type, String message) {
+        Log.e(TAG, "message  "+ message);
     }
 }

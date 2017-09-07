@@ -26,10 +26,12 @@ import static com.example.amitrai.demoopentokandroid.utility.Appconstants.TOKEN;
 public class ConnectionManager implements Session.SessionListener,
         PublisherKit.PublisherListener, Session.SignalListener{
 
+    private static final int RC_VIDEO_APP_PERM = 101;
     private InitializerBean initializerBean = null;
     private Session mSession = null;
     private Activity activity;
     private OpenTokListener listener = null;
+    public boolean isConnected = false;
 
     private final String TAG = getClass().getSimpleName();
 
@@ -80,12 +82,12 @@ public class ConnectionManager implements Session.SessionListener,
 
     @Override
     public void onConnected(Session session) {
-
+        isConnected = true;
     }
 
     @Override
     public void onDisconnected(Session session) {
-
+        isConnected = false;
     }
 
     @Override
@@ -95,7 +97,6 @@ public class ConnectionManager implements Session.SessionListener,
 
     @Override
     public void onStreamDropped(Session session, Stream stream) {
-
     }
 
     @Override
@@ -136,4 +137,24 @@ public class ConnectionManager implements Session.SessionListener,
             exp.printStackTrace();
         }
     }
+
+
+//    @AfterPermissionGranted(RC_VIDEO_APP_PERM)
+//    private void requestPermissions() {
+//        String[] perms = { Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO };
+//        if (EasyPermissions.hasPermissions(this, perms)) {
+//            // initialize view objects from your layout
+////            mPublisherViewContainer = (FrameLayout) findViewById(R.id.publisher_container);
+////            mSubscriberViewContainer = (FrameLayout) findViewById(R.id.subscriber_container);
+//
+//            // initialize and connect to the session
+////            mSession = new Session.Builder(this, API_KEY, SESSION_ID).build();
+////            mSession.setSessionListener(this);
+////            mSession.connect(TOKEN);
+//
+//        } else {
+//            EasyPermissions.requestPermissions(this, "This app needs access to your camera and mic to make video calls", RC_VIDEO_APP_PERM, perms);
+//        }
+//    }
+
 }

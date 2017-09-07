@@ -12,7 +12,7 @@ public class Appconstants {
     public static final String TOKEN = "T1==cGFydG5lcl9pZD00NTk1MzY5MiZzaWc9ZGM5OTQ3OTQ1N2YyNzVlZjAzNjcwZmMwZjA2MjBkY2YzNmQxZTBlOTpzZXNzaW9uX2lkPTFfTVg0ME5UazFNelk1TW41LU1UVXdORGMzT1RZd01Ea3lNMzVLV1cxdFVVRTBaVVpEYVZaUFp5OUxNRFUyUXprNFUwOS1mZyZjcmVhdGVfdGltZT0xNTA0Nzc5Njk0Jm5vbmNlPTAuODE4MDk0OTIxMDUxMDkxNyZyb2xlPXB1Ymxpc2hlciZleHBpcmVfdGltZT0xNTA3MzcxNjkzJmluaXRpYWxfbGF5b3V0X2NsYXNzX2xpc3Q9";
 
 
-    public static final String SIGNAL_TYPE =  "chat_message";
+    public static final String MESSAGE_TYPE_CHAT =  "chat_message";
 
 
     // error messages
